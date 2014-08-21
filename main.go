@@ -6,47 +6,31 @@ import (
 	"fmt"
 	//"github.com/tarm/goserial"
 	//"os"
-	"encoding/hex"
+	//"encoding/hex"
 )
 
 // 4 bytes header
 type Header struct {
-	DataLength    uint16
-	OptDataLength uint8
-	PacketType    uint8
+	dataLength    uint16
+	optDataLength uint8
+	packetType    uint8
 }
 
-type Package struct {
+type Packet struct {
 	SyncByte  uint8
-	Header    *Header
+	header    *Header
 	HeaderCrc uint8
 	Data      []byte
 	OptData   []byte
 	DataCrc   uint8
 }
 
-//func (header *Header) encode() (ret []byte) {
-
-//ret = make([]byte, 4)
-
-//datalen := make([]byte, 2)
-//binary.LittleEndian.PutUint16(datalen, header.DataLength)
-//ret[0] = datalen[0]
-//ret[0] = datalen[0]
-
-//return ret
-//}
-
-func NewPackage() *Package {
+func NewPackage() *Packet {
 	header := &Header{}
-	return &Package{SyncByte: 0x55, Header: header}
+	return &Packet{SyncByte: 0x55, header: header}
 }
 
-//func (pkg *Package) crcHeader() byte {
-//return pkg.crc()
-//}
-
-func (pkg *Package) crc(msg []byte) byte { // {{{
+func (pkg *Packet) crc(msg []byte) byte { // {{{
 
 	var crcTable = []byte{
 		0x00, 0x07, 0x0e, 0x09, 0x1c, 0x1b, 0x12, 0x15,
@@ -89,47 +73,55 @@ func (pkg *Package) crc(msg []byte) byte { // {{{
 	return crc
 } // }}}
 
-func (pkg *Package) Encode() []byte {
+func (pkg *Packet) setPackageType(pkgtype byte) {
+	pkg.header.packetType = pkgtype
+}
+func (pkg *Packet) Encode() []byte {
 	var ret []byte
 
-	pkg.Header.DataLength = uint16(len(pkg.Data))
-	pkg.Header.OptDataLength = uint8(len(pkg.OptData))
+	pkg.header.dataLength = uint16(len(pkg.Data))
+	pkg.header.optDataLength = uint8(len(pkg.OptData))
 
 	//sync+header+headercrc+data+optdata+datacrc
-	ret = make([]byte, 1+4+1+len(pkg.Data)+len(pkg.OptData)+1)
+	//ret = make([]byte, 1+4+1+len(pkg.Data)+len(pkg.OptData)+1)
+	ret = make([]byte, 6) //since we are appending data and optdata we only neeed to set this to fixed 6
 
 	ret[0] = 0x55
+
 	datalen := make([]byte, 2)
-	binary.LittleEndian.PutUint16(datalen, pkg.Header.DataLength)
+	binary.BigEndian.PutUint16(datalen, pkg.header.dataLength)
 	ret[1] = datalen[0]
 	ret[2] = datalen[1]
-	ret[3] = pkg.Header.OptDataLength
-	ret[4] = pkg.Header.PacketType
+
+	ret[3] = pkg.header.optDataLength
+	ret[4] = pkg.header.packetType
 	ret[5] = pkg.crc(ret[1:4]) //header checksum
+
+	ret = append(ret, pkg.Data...)                               //Data = starting on byte 6
+	ret = append(ret, pkg.OptData...)                            //Optional Data starting after Data
+	ret = append(ret, pkg.crc(append(pkg.Data, pkg.OptData...))) // Crc for data+optdata
 
 	return ret
 }
 
 func main() {
 
-	//header
-
-	var test []byte
-	test = make([]byte, 4)
-	//test = 0xff, 0xff
-	test[0] = 0xff
-	test[1] = 0xff
-	test[2] = 0x0f
-	test[3] = 0x0f
-	//str := hex.EncodeToString([]byte("a"))
-	fmt.Println(test)
-	fmt.Println(len(test))
-	//f := bufio.NewWriter(os.Stdout)
-	//defer f.Flush()
-	//f.Write(test)
-
 	p := NewPackage()
-	p.Data = []byte("aaaaaaa111")
-	fmt.Println(p.Encode())
-	fmt.Println(hex.EncodeToString(p.Encode()))
+	p.Data = []byte{0x01, 0x02, 0x03}
+	p.OptData = []byte{0x04, 0x05, 0x06}
+
+	printHex(p.Encode())
+	printHex(responsePacket().Encode())
+}
+
+func printHex(a []byte) {
+	b := fmt.Sprintf("% x", a)
+	fmt.Println(b)
+}
+
+func responsePacket() *Packet {
+	p := NewPackage()
+	p.setPackageType(0x02) //02 == response
+	p.Data = []byte{0x00}
+	return p
 }
