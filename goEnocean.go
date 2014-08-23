@@ -1,4 +1,4 @@
-package main
+package goEnocean
 
 import (
 	//"bufio"
@@ -95,7 +95,7 @@ func (pkg *Packet) Encode() []byte {
 
 	ret[3] = pkg.header.optDataLength
 	ret[4] = pkg.header.packetType
-	ret[5] = pkg.crc(ret[1:4]) //header checksum
+	ret[5] = pkg.crc(ret[1:5]) //header checksum
 
 	ret = append(ret, pkg.Data...)                               //Data = starting on byte 6
 	ret = append(ret, pkg.OptData...)                            //Optional Data starting after Data
@@ -104,19 +104,13 @@ func (pkg *Packet) Encode() []byte {
 	return ret
 }
 
-func main() {
-
-	p := NewPackage()
-	p.Data = []byte{0x01, 0x02, 0x03}
-	p.OptData = []byte{0x04, 0x05, 0x06}
-
-	printHex(p.Encode())
-	printHex(responsePacket().Encode())
+func printHex(a []byte) {
+	fmt.Println(toHex(a))
 }
 
-func printHex(a []byte) {
+func toHex(a []byte) string {
 	b := fmt.Sprintf("% x", a)
-	fmt.Println(b)
+	return b
 }
 
 func responsePacket() *Packet {
