@@ -9,14 +9,14 @@ import (
 	//"encoding/hex"
 )
 
-// 4 bytes header
+// Header is 4 bytes
 type Header struct {
 	dataLength    uint16
 	optDataLength uint8
 	packetType    uint8
 }
 
-type Packet struct {
+type packet struct {
 	SyncByte  uint8
 	header    *Header
 	HeaderCrc uint8
@@ -25,12 +25,13 @@ type Packet struct {
 	DataCrc   uint8
 }
 
-func NewPackage() *Packet {
+// NewPacket creates a new enocean packet
+func NewPacket() *packet {
 	header := &Header{}
-	return &Packet{SyncByte: 0x55, header: header}
+	return &packet{SyncByte: 0x55, header: header}
 }
 
-func (pkg *Packet) crc(msg []byte) byte { // {{{
+func (pkg *packet) crc(msg []byte) byte { // {{{
 
 	var crcTable = []byte{
 		0x00, 0x07, 0x0e, 0x09, 0x1c, 0x1b, 0x12, 0x15,
@@ -66,17 +67,17 @@ func (pkg *Packet) crc(msg []byte) byte { // {{{
 		0xde, 0xd9, 0xd0, 0xd7, 0xc2, 0xc5, 0xcc, 0xcb,
 		0xe6, 0xe1, 0xe8, 0xef, 0xfa, 0xfd, 0xf4, 0xf3}
 
-	var crc uint8 = 0
-	for key, _ := range msg {
+	var crc uint8
+	for key := range msg {
 		crc = crcTable[crc^msg[key]]
 	}
 	return crc
 } // }}}
 
-func (pkg *Packet) setPackageType(pkgtype byte) {
+func (pkg *packet) setPacketType(pkgtype byte) {
 	pkg.header.packetType = pkgtype
 }
-func (pkg *Packet) Encode() []byte {
+func (pkg *packet) Encode() []byte {
 	var ret []byte
 
 	pkg.header.dataLength = uint16(len(pkg.Data))
@@ -113,9 +114,9 @@ func toHex(a []byte) string {
 	return b
 }
 
-func responsePacket() *Packet {
-	p := NewPackage()
-	p.setPackageType(0x02) //02 == response
+func responsePacket() *packet {
+	p := NewPacket()
+	p.setPacketType(0x02) //02 == response
 	p.Data = []byte{0x00}
 	return p
 }
