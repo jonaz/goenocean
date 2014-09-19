@@ -2,9 +2,11 @@ package goenocean
 
 import (
 	//"bufio"
+
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"io"
 	//"github.com/tarm/goserial"
 	//"os"
 	//"encoding/hex"
@@ -112,6 +114,56 @@ func Decode(data []byte) (packet *packet, err error) {
 	}
 
 	return
+}
+
+func Read(rd io.Reader) []byte {
+	//TODO use this example receivePacket when reading from serial https://github.com/kleckse/enocean/blob/master/esp3.py
+
+	buf := make([]byte, 1)
+	rawPacket := make([]byte, 1)
+	state := 0
+
+	for {
+		rd.Read(buf)
+
+		switch state {
+		case 0: //0x55
+			state = 1
+			rawPacket = append(rawPacket, buf...)
+			buf = make([]byte, 4) //read the header
+
+		case 1: //header
+			state = 2
+			rawPacket = append(rawPacket, buf...)
+			buf = make([]byte, 1) //read the crc header
+
+		case 2: //crc header
+			state = 3
+			rawPacket = append(rawPacket, buf...)
+			buf = make([]byte, binary.BigEndian.Uint16(rawPacket[1:2])) //read the opt data
+
+		case 3: //data
+			state = 4
+			rawPacket = append(rawPacket, buf...)
+			buf = make([]byte, (rawPacket[3])) //read the opt data
+
+		case 4: //optional data
+			state = 5
+			rawPacket = append(rawPacket, buf...)
+			buf = make([]byte, 1) //read the data crc
+
+		case 5: //data crc
+			state = 0
+			rawPacket = append(rawPacket, buf...)
+			buf = make([]byte, 1)
+			break
+			//default:
+			//return nil
+		}
+
+	}
+
+	return rawPacket
 }
 
 func printHex(a []byte) { // {{{
