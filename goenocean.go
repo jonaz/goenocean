@@ -125,6 +125,9 @@ func Read(rd io.Reader) []byte {
 
 	for {
 		rd.Read(buf)
+		if buf[0] == 0x55 {
+			state = 0
+		}
 
 		switch state {
 		case 0: //0x55
