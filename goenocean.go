@@ -3,31 +3,32 @@ package goenocean
 import (
 	//"bufio"
 	"encoding/binary"
+	"errors"
 	"fmt"
 	//"github.com/tarm/goserial"
 	//"os"
 	//"encoding/hex"
 )
 
-// Header is 4 bytes
-type Header struct {
+// header is 4 bytes
+type header struct {
 	dataLength    uint16
 	optDataLength uint8
 	packetType    uint8
 }
 
 type packet struct {
-	SyncByte  uint8
-	header    *Header
-	HeaderCrc uint8
-	Data      []byte
-	OptData   []byte
-	DataCrc   uint8
+	SyncByte uint8
+	header   *header
+	//headerCrc uint8
+	Data    []byte
+	OptData []byte
+	DataCrc uint8
 }
 
 // NewPacket creates a new enocean packet
 func NewPacket() *packet {
-	header := &Header{}
+	header := &header{}
 	return &packet{SyncByte: 0x55, header: header}
 }
 
@@ -74,10 +75,10 @@ func (pkg *packet) crc(msg []byte) byte { // {{{
 	return crc
 } // }}}
 
-func (pkg *packet) setPacketType(pkgtype byte) {
+func (pkg *packet) setPacketType(pkgtype byte) { // {{{
 	pkg.header.packetType = pkgtype
-}
-func (pkg *packet) Encode() []byte {
+}                                    // }}}
+func (pkg *packet) Encode() []byte { // {{{
 	var ret []byte
 
 	pkg.header.dataLength = uint16(len(pkg.Data))
@@ -103,20 +104,21 @@ func (pkg *packet) Encode() []byte {
 	ret = append(ret, pkg.crc(append(pkg.Data, pkg.OptData...))) // Crc for data+optdata
 
 	return ret
+} // }}}
+
+func Decode(data []byte) (packet *packet, err error) {
+	if data[0] != 0x55 {
+		return nil, errors.New("goenocean.Decode: must start with 0x55")
+	}
+
+	return
 }
 
-func printHex(a []byte) {
+func printHex(a []byte) { // {{{
 	fmt.Println(toHex(a))
-}
+} // }}}
 
-func toHex(a []byte) string {
+func toHex(a []byte) string { // {{{
 	b := fmt.Sprintf("% x", a)
 	return b
-}
-
-func responsePacket() *packet {
-	p := NewPacket()
-	p.setPacketType(0x02) //02 == response
-	p.Data = []byte{0x00}
-	return p
-}
+} // }}}
