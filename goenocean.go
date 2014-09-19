@@ -1,4 +1,4 @@
-package goEnocean
+package goenocean
 
 import (
 	//"bufio"
