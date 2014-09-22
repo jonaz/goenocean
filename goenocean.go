@@ -8,7 +8,7 @@ import (
 	//"github.com/tarm/goserial"
 )
 
-func Decode(data []byte) (p *packet, err error) {
+func Decode(data []byte) (p *Packet, err error) {
 	if data[0] != 0x55 {
 		return nil, errors.New("goenocean.Decode: must start with 0x55")
 	}

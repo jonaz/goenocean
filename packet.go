@@ -23,7 +23,6 @@ func (h *header) toBytes() []byte {
 	binary.BigEndian.PutUint16(datalen, h.dataLength)
 	ret[0] = datalen[0]
 	ret[1] = datalen[1]
-
 	ret[2] = h.optDataLength
 	ret[3] = h.packetType
 	return ret
@@ -45,7 +44,7 @@ func (h *header) Equal(o *header) bool { // {{{
 type EepPacket interface {
 }
 
-type packet struct {
+type Packet struct {
 	syncByte  uint8
 	header    *header
 	headerCrc uint8
@@ -54,10 +53,10 @@ type packet struct {
 	dataCrc   uint8
 }
 
-// NewPacket creates a new enocean packet
-func NewPacket() *packet {
+// NewPacket creates a new enocean Packet
+func NewPacket() *Packet {
 	header := &header{}
-	return &packet{syncByte: 0x55, header: header}
+	return &Packet{syncByte: 0x55, header: header}
 }
 
 func crc(msg []byte) byte { // {{{
@@ -115,25 +114,25 @@ const (
 	PacketTypeRadioErp2        = 0x0a
 )
 
-func (pkg *packet) PacketType() byte { // {{{
+func (pkg *Packet) PacketType() byte { // {{{
 	return pkg.header.packetType
 }                                                // }}}
-func (pkg *packet) SetPacketType(pkgtype byte) { // {{{
+func (pkg *Packet) SetPacketType(pkgtype byte) { // {{{
 	pkg.header.packetType = pkgtype
 }                                  // }}}
-func (pkg *packet) Data() []byte { // {{{
+func (pkg *Packet) Data() []byte { // {{{
 	return pkg.data
 }                                         // }}}
-func (pkg *packet) SetData(data []byte) { // {{{
+func (pkg *Packet) SetData(data []byte) { // {{{
 	pkg.data = data
 }                                     // }}}
-func (pkg *packet) OptData() []byte { // {{{
+func (pkg *Packet) OptData() []byte { // {{{
 	return pkg.optData
 }                                            // }}}
-func (pkg *packet) SetOptData(data []byte) { // {{{
+func (pkg *Packet) SetOptData(data []byte) { // {{{
 	pkg.optData = data
 }                                    // }}}
-func (pkg *packet) Encode() []byte { // {{{
+func (pkg *Packet) Encode() []byte { // {{{
 
 	pkg.header.dataLength = uint16(len(pkg.data))
 	pkg.header.optDataLength = uint8(len(pkg.optData))
@@ -153,7 +152,7 @@ func (pkg *packet) Encode() []byte { // {{{
 
 	return ret
 } // }}}
-func (p *packet) ValidateCrc() error {
+func (p *Packet) ValidateCrc() error {
 	if p.header.crc() != p.headerCrc {
 		return errors.New("Header validation crc failed")
 	}
@@ -162,7 +161,7 @@ func (p *packet) ValidateCrc() error {
 	}
 	return nil
 }
-func (p *packet) Equal(o *packet) bool { // {{{
+func (p *Packet) Equal(o *Packet) bool { // {{{
 	return p != nil && o != nil &&
 		p.header.Equal(o.header) &&
 		p.syncByte == o.syncByte &&
