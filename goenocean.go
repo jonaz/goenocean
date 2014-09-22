@@ -15,9 +15,7 @@ func Decode(data []byte) (p *packet, err error) {
 
 	p = NewPacket()
 	p.syncByte = data[0]
-	p.header.dataLength = binary.BigEndian.Uint16(data[1:3])
-	p.header.optDataLength = data[3]
-	p.header.packetType = data[4]
+	p.header.setFromBytes(data[1:5])
 	p.headerCrc = data[5]
 
 	p.data = data[6 : 6+p.header.dataLength]

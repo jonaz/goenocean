@@ -28,6 +28,11 @@ func (h *header) toBytes() []byte {
 	ret[3] = h.packetType
 	return ret
 }
+func (h *header) setFromBytes(data []byte) {
+	h.dataLength = binary.BigEndian.Uint16(data[0:2])
+	h.optDataLength = data[2]
+	h.packetType = data[3]
+}
 
 func (h *header) Equal(o *header) bool { // {{{
 	return h != nil && o != nil &&
@@ -129,25 +134,22 @@ func (pkg *packet) SetOptData(data []byte) { // {{{
 	pkg.optData = data
 }                                    // }}}
 func (pkg *packet) Encode() []byte { // {{{
-	var ret []byte
 
 	pkg.header.dataLength = uint16(len(pkg.data))
 	pkg.header.optDataLength = uint8(len(pkg.optData))
+	pkg.headerCrc = pkg.header.crc()
+	pkg.dataCrc = crc(append(pkg.data, pkg.optData...))
 
 	//sync+header+headercrc+data+optdata+datacrc
-	//ret = make([]byte, 1+4+1+len(pkg.Data)+len(pkg.OptData)+1)
-	ret = make([]byte, 1) //since we are appending data and optdata we only neeed to set this to fixed 6
+	ret := []byte{pkg.syncByte}
 
 	ret[0] = pkg.syncByte
 
-	pkg.headerCrc = pkg.header.crc()
-	ret = append(ret, pkg.header.toBytes()...) //Data = starting on byte 6
-	ret = append(ret, pkg.headerCrc)           //Data = starting on byte 6
-
-	ret = append(ret, pkg.data...)    //Data = starting on byte 6
-	ret = append(ret, pkg.optData...) //Optional Data starting after Data
-	pkg.dataCrc = crc(append(pkg.data, pkg.optData...))
-	ret = append(ret, pkg.dataCrc) // Crc for data+optdata
+	ret = append(ret, pkg.header.toBytes()...) //Header
+	ret = append(ret, pkg.headerCrc)           //Header Crc
+	ret = append(ret, pkg.data...)             //Data = starting on byte 6
+	ret = append(ret, pkg.optData...)          //Optional Data starting after Data
+	ret = append(ret, pkg.dataCrc)             // Crc for data+optdata
 
 	return ret
 } // }}}
