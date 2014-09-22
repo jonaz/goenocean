@@ -1,6 +1,10 @@
 package goenocean
 
-import "encoding/binary"
+import (
+	"bytes"
+	"encoding/binary"
+	"errors"
+)
 
 // header is 4 bytes
 type header struct {
@@ -8,6 +12,29 @@ type header struct {
 	optDataLength uint8
 	packetType    uint8
 }
+
+func (h *header) crc() byte {
+	return crc(h.toBytes())
+}
+func (h *header) toBytes() []byte {
+	var ret []byte
+	ret = make([]byte, 4) //since we are appending data and optdata we only neeed to set this to fixed 6
+	datalen := make([]byte, 2)
+	binary.BigEndian.PutUint16(datalen, h.dataLength)
+	ret[0] = datalen[0]
+	ret[1] = datalen[1]
+
+	ret[2] = h.optDataLength
+	ret[3] = h.packetType
+	return ret
+}
+
+func (h *header) Equal(o *header) bool { // {{{
+	return h != nil && o != nil &&
+		h.dataLength == o.dataLength &&
+		h.optDataLength == o.optDataLength &&
+		h.packetType == o.packetType
+} // }}}
 
 //  TODO: find a smart way to create eep class with data and opdata (jonaz) <Fri 19 Sep 2014 08:46:23 PM CEST>
 type EepPacket interface {
@@ -109,19 +136,13 @@ func (pkg *packet) Encode() []byte { // {{{
 
 	//sync+header+headercrc+data+optdata+datacrc
 	//ret = make([]byte, 1+4+1+len(pkg.Data)+len(pkg.OptData)+1)
-	ret = make([]byte, 6) //since we are appending data and optdata we only neeed to set this to fixed 6
+	ret = make([]byte, 1) //since we are appending data and optdata we only neeed to set this to fixed 6
 
 	ret[0] = pkg.syncByte
 
-	datalen := make([]byte, 2)
-	binary.BigEndian.PutUint16(datalen, pkg.header.dataLength)
-	ret[1] = datalen[0]
-	ret[2] = datalen[1]
-
-	ret[3] = pkg.header.optDataLength
-	ret[4] = pkg.header.packetType
-	pkg.headerCrc = crc(ret[1:5])
-	ret[5] = pkg.headerCrc //header checksum
+	pkg.headerCrc = pkg.header.crc()
+	ret = append(ret, pkg.header.toBytes()...) //Data = starting on byte 6
+	ret = append(ret, pkg.headerCrc)           //Data = starting on byte 6
 
 	ret = append(ret, pkg.data...)    //Data = starting on byte 6
 	ret = append(ret, pkg.optData...) //Optional Data starting after Data
@@ -129,4 +150,22 @@ func (pkg *packet) Encode() []byte { // {{{
 	ret = append(ret, pkg.dataCrc) // Crc for data+optdata
 
 	return ret
+} // }}}
+func (p *packet) ValidateCrc() error {
+	if p.header.crc() != p.headerCrc {
+		return errors.New("Header validation crc failed")
+	}
+	if p.dataCrc != crc(append(p.data, p.optData...)) {
+		return errors.New("Data+Optdata validation crc failed")
+	}
+	return nil
+}
+func (p *packet) Equal(o *packet) bool { // {{{
+	return p != nil && o != nil &&
+		p.header.Equal(o.header) &&
+		p.syncByte == o.syncByte &&
+		p.headerCrc == o.headerCrc &&
+		p.dataCrc == o.dataCrc &&
+		bytes.Equal(p.data, o.data) &&
+		bytes.Equal(p.optData, o.optData)
 } // }}}

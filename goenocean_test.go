@@ -1,9 +1,6 @@
 package goenocean
 
-import (
-	"bytes"
-	"testing"
-)
+import "testing"
 
 func TestEncode(t *testing.T) {
 
@@ -58,10 +55,7 @@ func TestDecode(t *testing.T) {
 	if err != nil {
 		t.Errorf("Decoding failed with error: %s", err)
 	}
-	t1 := p.Encode()
-	t2 := pkg.Encode()
-	if !bytes.Equal(t1, t2) {
-		//if !reflect.DeepEqual(p, pkg) {
-		t.Errorf("Decoding failed: \n%+v\n%+v", p, pkg)
+	if !p.Equal(pkg) {
+		t.Errorf("Packets not equal: \n%+v\n%+v", p, pkg)
 	}
 }

@@ -18,14 +18,13 @@ func Decode(data []byte) (p *packet, err error) {
 	p.header.dataLength = binary.BigEndian.Uint16(data[1:3])
 	p.header.optDataLength = data[3]
 	p.header.packetType = data[4]
-	//p.headerCrc = crc(data[1:5])
 	p.headerCrc = data[5]
 
 	p.data = data[6 : 6+p.header.dataLength]
 	p.optData = data[6+p.header.dataLength : 6+int(p.header.dataLength)+int(p.header.optDataLength)]
 	p.dataCrc = data[len(data)-1]
 
-	//TODO create a pkg.ValidateCrc and run it here
+	err = p.ValidateCrc()
 
 	return
 }
