@@ -114,6 +114,9 @@ const (
 	PacketTypeRadioErp2        = 0x0a
 )
 
+func (pkg *Packet) Header() *header { // {{{
+	return pkg.header
+}                                      // }}}
 func (pkg *Packet) PacketType() byte { // {{{
 	return pkg.header.packetType
 }                                                // }}}
