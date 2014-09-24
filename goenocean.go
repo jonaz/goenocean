@@ -80,11 +80,11 @@ func Read(rd io.Reader, f func([]byte)) {
 
 }
 
-func printHex(a []byte) { // {{{
-	fmt.Println(toHex(a))
+func PrintHex(a []byte) { // {{{
+	fmt.Println(ToHex(a))
 } // }}}
 
-func toHex(a []byte) string { // {{{
+func ToHex(a []byte) string { // {{{
 	b := fmt.Sprintf("% x", a)
 	return b
 } // }}}
