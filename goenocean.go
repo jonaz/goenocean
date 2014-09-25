@@ -41,8 +41,6 @@ func Read(rd io.Reader, f func([]byte)) {
 			fmt.Println("ERROR reading:", err)
 			continue
 		}
-		//f(buf)
-		//continue
 
 		if readLen > 0 && buf[0] == 0x55 {
 			rawPacket = []byte{}
@@ -50,29 +48,21 @@ func Read(rd io.Reader, f func([]byte)) {
 		}
 
 		rawPacket = append(rawPacket, buf...)
-		//fmt.Println("State", state)
-		//fmt.Println("readLen", readLen)
-		//fmt.Println(buf)
+
 		switch state {
 		case 1: //header
 			if len(rawPacket) > 5 {
+				length = int(binary.BigEndian.Uint16(rawPacket[1:3]))
 				state = 2
 			}
 
-		case 2: // data
-			length = int(binary.BigEndian.Uint16(rawPacket[1:3]))
-			//fmt.Println("length", length)
-			if len(rawPacket) > 5+length {
+		case 2: // the rest!
+			if len(rawPacket) > 5+length+int(rawPacket[3]) {
 				state = 3
 			}
 
-		case 3: //opt data
-			if len(rawPacket) > 5+length+int(rawPacket[3]) {
-				state = 4
-			}
-
-		case 4: //data crc
-			state = 5
+		case 3: //data crc
+			state = 0
 			f(rawPacket)
 		}
 
