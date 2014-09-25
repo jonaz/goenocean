@@ -5,6 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
+
+	"github.com/tarm/goserial"
 	//"github.com/tarm/goserial"
 )
 
@@ -27,7 +30,28 @@ func Decode(data []byte) (p *Packet, err error) {
 	return
 }
 
-func Read(rd io.Reader, f func([]byte)) {
+func Serial(send chan *Packet, recv chan *Packet) {
+	c := &serial.Config{Name: "/dev/ttyUSB0", Baud: 57600}
+	s, err := serial.OpenPort(c)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	go readPackets(s, func(data []byte) {
+		reciever(data, recv)
+	})
+}
+
+func reciever(data []byte, recv chan *Packet) {
+	p, err := Decode(data)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	recv <- p
+}
+
+func readPackets(rd io.ReadWriter, f func([]byte)) {
 	//TODO use this example receivePacket when reading from serial https://github.com/kleckse/enocean/blob/master/esp3.py
 
 	buf := make([]byte, 1)
