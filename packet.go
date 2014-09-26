@@ -40,8 +40,23 @@ func (h *header) Equal(o *header) bool { // {{{
 		h.packetType == o.packetType
 } // }}}
 
-//  TODO: find a smart way to create eep class with data and opdata (jonaz) <Fri 19 Sep 2014 08:46:23 PM CEST>
-type EepPacket interface {
+type PacketInterface interface {
+	Encode() []byte
+	SetSyncByte(byte)
+	SetHeaderFromBytes([]byte)
+	ValidateCrc() error
+	SetData([]byte)
+	Header() *header
+	SetHeaderCrc(byte)
+	HeaderCrc() byte
+	SetOptData([]byte)
+	SetDataCrc(byte)
+	SyncByte() byte
+	DataCrc() byte
+	Data() []byte
+	OptData() []byte
+	Process()
+	SenderId() []byte
 }
 
 type Packet struct {
@@ -134,6 +149,34 @@ func (pkg *Packet) OptData() []byte { // {{{
 }                                            // }}}
 func (pkg *Packet) SetOptData(data []byte) { // {{{
 	pkg.optData = data
+}                                           // }}}
+func (pkg *Packet) SetSyncByte(data byte) { // {{{
+	pkg.syncByte = data
+}                                    // }}}
+func (pkg *Packet) SyncByte() byte { // {{{
+	return pkg.syncByte
+}                                                    // }}}
+func (pkg *Packet) SetHeaderFromBytes(data []byte) { // {{{
+	pkg.header.setFromBytes(data)
+}                                            // }}}
+func (pkg *Packet) SetHeaderCrc(data byte) { // {{{
+	pkg.headerCrc = data
+}                                     // }}}
+func (pkg *Packet) HeaderCrc() byte { // {{{
+	return pkg.headerCrc
+}                                          // }}}
+func (pkg *Packet) SetDataCrc(data byte) { // {{{
+	pkg.dataCrc = data
+}                                   // }}}
+func (pkg *Packet) DataCrc() byte { // {{{
+	return pkg.dataCrc
+}                              // }}}
+func (pkg *Packet) Process() { // {{{
+	//noop here
+}                                      // }}}
+func (pkg *Packet) SenderId() []byte { // {{{
+	//noop here
+	return nil
 }                                    // }}}
 func (pkg *Packet) Encode() []byte { // {{{
 
@@ -164,12 +207,12 @@ func (p *Packet) ValidateCrc() error {
 	}
 	return nil
 }
-func (p *Packet) Equal(o *Packet) bool { // {{{
+func (p *Packet) Equal(o PacketInterface) bool { // {{{
 	return p != nil && o != nil &&
-		p.header.Equal(o.header) &&
-		p.syncByte == o.syncByte &&
-		p.headerCrc == o.headerCrc &&
-		p.dataCrc == o.dataCrc &&
-		bytes.Equal(p.data, o.data) &&
-		bytes.Equal(p.optData, o.optData)
+		p.Header().Equal(o.Header()) &&
+		p.SyncByte() == o.SyncByte() &&
+		p.HeaderCrc() == o.HeaderCrc() &&
+		p.DataCrc() == o.DataCrc() &&
+		bytes.Equal(p.Data(), o.Data()) &&
+		bytes.Equal(p.OptData(), o.OptData())
 } // }}}
