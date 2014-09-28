@@ -16,6 +16,7 @@ func NewTelegramRps() *TelegramRps {
 		packet:        packet{syncByte: 0x55, header: header},
 		senderId:      [4]byte{0xff, 0xff, 0xff, 0xff},
 		destinationId: [4]byte{0xff, 0xff, 0xff, 0xff},
+		status:        0,
 		data:          0}
 }
 func (p *TelegramRps) Process() {
@@ -25,6 +26,7 @@ func (p *TelegramRps) Process() {
 	copy(p.senderId[:], p.packet.data[length-5:length-1])
 	copy(p.destinationId[:], p.packet.optData[1:5])
 
+	//1 byte data only for RPS
 	p.data = p.packet.data[1]
 }
 
@@ -32,9 +34,9 @@ func (p *TelegramRps) Data() []byte {
 	return []byte{p.data}
 }
 
-//func (p *TelegramRps) SetData(data []byte) {
-//p.data = data[0]
-//}
+func (p *TelegramRps) SetTelegramData(data byte) {
+	p.data = data
+}
 
 func (p *TelegramRps) SenderId() [4]byte {
 	return p.senderId
@@ -42,19 +44,27 @@ func (p *TelegramRps) SenderId() [4]byte {
 func (p *TelegramRps) SetSenderId(data [4]byte) {
 	p.senderId = data
 }
+func (p *TelegramRps) SetStatus(data byte) {
+	p.status = data
+}
 func (p *TelegramRps) Encode() []byte {
 
-	p.packet.data = []byte{p.data}
+	// 1 byte data + 4 byte sender id + 1 byte status
+	data := []byte{TelegramTypeRps}
+	data = append(data, p.data)
+	data = append(data, p.senderId[:]...)
+	data = append(data, p.status)
+
+	p.packet.data = data
 
 	//SubTelNum + Destination Id + dBm + security Level
 	optData := []byte{0x03}
-	optData = append(optData, p.destinationId[0])
-	optData = append(optData, p.destinationId[1])
-	optData = append(optData, p.destinationId[2])
-	optData = append(optData, p.destinationId[3])
+	optData = append(optData, p.destinationId[:]...)
 	optData = append(optData, 0xff)
-	optData = append(optData, 0)
+	optData = append(optData, 0x00)
 	p.packet.optData = optData
+
+	p.packet.SetPacketType(0x01)
 
 	return p.packet.Encode()
 }

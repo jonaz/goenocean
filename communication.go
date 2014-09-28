@@ -19,6 +19,19 @@ func Serial(send chan Packet, recv chan Packet) {
 	go readPackets(s, func(data []byte) {
 		reciever(data, recv)
 	})
+
+	go sender(s, send)
+}
+
+func sender(data io.ReadWriter, send chan Packet) {
+
+	for p := range send {
+		_, err := data.Write(p.Encode())
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
 }
 
 func reciever(data []byte, recv chan Packet) {
@@ -45,7 +58,7 @@ func readPackets(rd io.ReadWriter, f func([]byte)) {
 			continue
 		}
 
-		//fmt.Printf("% x ", buf)
+		fmt.Printf("% x ", buf)
 		//continue
 
 		if readLen > 0 && buf[0] == 0x55 {
