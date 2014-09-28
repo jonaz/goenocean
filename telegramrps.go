@@ -14,7 +14,7 @@ func NewTelegramRps() *TelegramRps {
 	header := &header{}
 	return &TelegramRps{
 		packet:        packet{syncByte: 0x55, header: header},
-		senderId:      [4]byte{0xff, 0xff, 0xff, 0xff},
+		senderId:      [4]byte{0x00, 0x00, 0x00, 0x00}, //this can default to 00 since usb300 will add its own senderid
 		destinationId: [4]byte{0xff, 0xff, 0xff, 0xff},
 		status:        0,
 		data:          0}
