@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-func Decode(data []byte) (p PacketInterface, err error) {
+func Decode(data []byte) (p Packet, err error) {
 	if data[0] != 0x55 {
 		return nil, errors.New("goenocean.Decode: must start with 0x55")
 	}
@@ -25,11 +25,11 @@ func Decode(data []byte) (p PacketInterface, err error) {
 	return
 }
 
-func getPacket(packetType, rorg byte) PacketInterface {
+func getPacket(packetType, rorg byte) Packet {
 	if packetType == PacketTypeRadioErp1 {
 		switch rorg {
-		case EepRps:
-			return NewPacketEepRps()
+		case TelegramTypeRps:
+			return NewTelegramRps()
 		}
 	}
 

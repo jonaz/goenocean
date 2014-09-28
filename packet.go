@@ -40,7 +40,7 @@ func (h *header) Equal(o *header) bool { // {{{
 		h.packetType == o.packetType
 } // }}}
 
-type PacketInterface interface {
+type Packet interface {
 	Encode() []byte
 	SetSyncByte(byte)
 	SetHeaderFromBytes([]byte)
@@ -56,10 +56,10 @@ type PacketInterface interface {
 	Data() []byte
 	OptData() []byte
 	Process()
-	SenderId() []byte
+	SenderId() [4]byte
 }
 
-type Packet struct {
+type packet struct {
 	syncByte  uint8
 	header    *header
 	headerCrc uint8
@@ -68,10 +68,10 @@ type Packet struct {
 	dataCrc   uint8
 }
 
-// NewPacket creates a new enocean Packet
-func NewPacket() *Packet {
+// NewPacket creates a new enocean packet
+func NewPacket() *packet {
 	header := &header{}
-	return &Packet{syncByte: 0x55, header: header}
+	return &packet{syncByte: 0x55, header: header}
 }
 
 func crc(msg []byte) byte { // {{{
@@ -129,76 +129,76 @@ const (
 	PacketTypeRadioErp2        = 0x0a
 )
 
-func (pkg *Packet) Header() *header { // {{{
-	return pkg.header
-}                                      // }}}
-func (pkg *Packet) PacketType() byte { // {{{
-	return pkg.header.packetType
-}                                                // }}}
-func (pkg *Packet) SetPacketType(pkgtype byte) { // {{{
-	pkg.header.packetType = pkgtype
-}                                  // }}}
-func (pkg *Packet) Data() []byte { // {{{
-	return pkg.data
-}                                         // }}}
-func (pkg *Packet) SetData(data []byte) { // {{{
-	pkg.data = data
-}                                     // }}}
-func (pkg *Packet) OptData() []byte { // {{{
-	return pkg.optData
-}                                            // }}}
-func (pkg *Packet) SetOptData(data []byte) { // {{{
-	pkg.optData = data
-}                                           // }}}
-func (pkg *Packet) SetSyncByte(data byte) { // {{{
-	pkg.syncByte = data
+func (p *packet) Header() *header { // {{{
+	return p.header
 }                                    // }}}
-func (pkg *Packet) SyncByte() byte { // {{{
-	return pkg.syncByte
-}                                                    // }}}
-func (pkg *Packet) SetHeaderFromBytes(data []byte) { // {{{
-	pkg.header.setFromBytes(data)
-}                                            // }}}
-func (pkg *Packet) SetHeaderCrc(data byte) { // {{{
-	pkg.headerCrc = data
-}                                     // }}}
-func (pkg *Packet) HeaderCrc() byte { // {{{
-	return pkg.headerCrc
-}                                          // }}}
-func (pkg *Packet) SetDataCrc(data byte) { // {{{
-	pkg.dataCrc = data
+func (p *packet) PacketType() byte { // {{{
+	return p.header.packetType
+}                                              // }}}
+func (p *packet) SetPacketType(pkgtype byte) { // {{{
+	p.header.packetType = pkgtype
+}                                // }}}
+func (p *packet) Data() []byte { // {{{
+	return p.data
+}                                       // }}}
+func (p *packet) SetData(data []byte) { // {{{
+	p.data = data
 }                                   // }}}
-func (pkg *Packet) DataCrc() byte { // {{{
-	return pkg.dataCrc
-}                              // }}}
-func (pkg *Packet) Process() { // {{{
+func (p *packet) OptData() []byte { // {{{
+	return p.optData
+}                                          // }}}
+func (p *packet) SetOptData(data []byte) { // {{{
+	p.optData = data
+}                                         // }}}
+func (p *packet) SetSyncByte(data byte) { // {{{
+	p.syncByte = data
+}                                  // }}}
+func (p *packet) SyncByte() byte { // {{{
+	return p.syncByte
+}                                                  // }}}
+func (p *packet) SetHeaderFromBytes(data []byte) { // {{{
+	p.header.setFromBytes(data)
+}                                          // }}}
+func (p *packet) SetHeaderCrc(data byte) { // {{{
+	p.headerCrc = data
+}                                   // }}}
+func (p *packet) HeaderCrc() byte { // {{{
+	return p.headerCrc
+}                                        // }}}
+func (p *packet) SetDataCrc(data byte) { // {{{
+	p.dataCrc = data
+}                                 // }}}
+func (p *packet) DataCrc() byte { // {{{
+	return p.dataCrc
+}                            // }}}
+func (p *packet) Process() { // {{{
 	//noop here
-}                                      // }}}
-func (pkg *Packet) SenderId() []byte { // {{{
+}                                     // }}}
+func (p *packet) SenderId() [4]byte { // {{{
 	//noop here
-	return nil
-}                                    // }}}
-func (pkg *Packet) Encode() []byte { // {{{
+	return [4]byte{0, 0, 0, 0}
+}                                  // }}}
+func (p *packet) Encode() []byte { // {{{
 
-	pkg.header.dataLength = uint16(len(pkg.data))
-	pkg.header.optDataLength = uint8(len(pkg.optData))
-	pkg.headerCrc = pkg.header.crc()
-	pkg.dataCrc = crc(append(pkg.data, pkg.optData...))
+	p.header.dataLength = uint16(len(p.data))
+	p.header.optDataLength = uint8(len(p.optData))
+	p.headerCrc = p.header.crc()
+	p.dataCrc = crc(append(p.data, p.optData...))
 
 	//sync+header+headercrc+data+optdata+datacrc
-	ret := []byte{pkg.syncByte}
+	ret := []byte{p.syncByte}
 
-	ret[0] = pkg.syncByte
+	ret[0] = p.syncByte
 
-	ret = append(ret, pkg.header.toBytes()...) //Header
-	ret = append(ret, pkg.headerCrc)           //Header Crc
-	ret = append(ret, pkg.data...)             //Data = starting on byte 6
-	ret = append(ret, pkg.optData...)          //Optional Data starting after Data
-	ret = append(ret, pkg.dataCrc)             // Crc for data+optdata
+	ret = append(ret, p.header.toBytes()...) //Header
+	ret = append(ret, p.headerCrc)           //Header Crc
+	ret = append(ret, p.data...)             //Data = starting on byte 6
+	ret = append(ret, p.optData...)          //Optional Data starting after Data
+	ret = append(ret, p.dataCrc)             // Crc for data+optdata
 
 	return ret
 } // }}}
-func (p *Packet) ValidateCrc() error {
+func (p *packet) ValidateCrc() error {
 	if p.header.crc() != p.headerCrc {
 		return errors.New("Header validation crc failed")
 	}
@@ -207,7 +207,7 @@ func (p *Packet) ValidateCrc() error {
 	}
 	return nil
 }
-func (p *Packet) Equal(o PacketInterface) bool { // {{{
+func (p *packet) Equal(o Packet) bool { // {{{
 	return p != nil && o != nil &&
 		p.Header().Equal(o.Header()) &&
 		p.SyncByte() == o.SyncByte() &&

@@ -9,7 +9,7 @@ import (
 	"github.com/tarm/goserial"
 )
 
-func Serial(send chan PacketInterface, recv chan PacketInterface) {
+func Serial(send chan Packet, recv chan Packet) {
 	c := &serial.Config{Name: "/dev/ttyUSB0", Baud: 57600}
 	s, err := serial.OpenPort(c)
 	if err != nil {
@@ -21,7 +21,7 @@ func Serial(send chan PacketInterface, recv chan PacketInterface) {
 	})
 }
 
-func reciever(data []byte, recv chan PacketInterface) {
+func reciever(data []byte, recv chan Packet) {
 	p, err := Decode(data)
 	if err != nil {
 		fmt.Println(err)
