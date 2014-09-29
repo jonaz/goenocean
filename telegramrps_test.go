@@ -1,7 +1,6 @@
 package goenocean
 
 import (
-	"bytes"
 	"reflect"
 	"testing"
 )
@@ -25,7 +24,7 @@ func TestRpsTelegramData(t *testing.T) {
 	p.SetTelegramData(0x70)
 	p.SetStatus(3)
 
-	if !bytes.Equal(p.TelegramData(), []byte{0x70}) {
+	if p.TelegramData() != 0x70 {
 		t.Errorf("wrong data failed: %v != %v", p.Data(), []byte{0x70})
 	}
 }

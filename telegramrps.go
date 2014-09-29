@@ -27,8 +27,11 @@ func (p *TelegramRps) Process() {
 	p.data = p.packet.data[1]
 }
 
-func (p *TelegramRps) TelegramData() []byte {
-	return []byte{p.data}
+func (p *TelegramRps) DestinationId() [4]byte {
+	return p.destinationId
+}
+func (p *TelegramRps) TelegramData() byte {
+	return p.data
 }
 
 func (p *TelegramRps) SetTelegramData(data byte) {

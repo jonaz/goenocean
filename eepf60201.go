@@ -10,6 +10,10 @@ func NewEepF60201() *EepF60201 { // {{{
 	return &EepF60201{NewTelegramRps()}
 } // }}}
 
+func (p *EepF60201) SetTelegram(t *TelegramRps) { // {{{
+	p.TelegramRps = t
+} // }}}
+
 func (p *EepF60201) RepeatCount() uint8 { // {{{
 	return p.status & 0x0f
 }                                                 // }}}
@@ -66,6 +70,26 @@ func (p *EepF60201) R1B0() bool {
 func (p *EepF60201) r1() uint {
 	n := p.data >> 5
 	return uint(n)
+}
+
+func (p *EepF60201) R2B1() bool {
+	if p.r2() == 2 {
+		return true
+	}
+	return false
+}
+func (p *EepF60201) R2B0() bool {
+	if p.r2() == 3 {
+		return true
+	}
+	return false
+}
+func (p *EepF60201) r2() uint {
+	if p.data&0x01 == 1 {
+		n := (p.data >> 1) & 0x07
+		return uint(n)
+	}
+	return 0xff
 }
 
 func (p *EepF60201) Action() string {
