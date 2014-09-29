@@ -1,9 +1,7 @@
 package goenocean
 
-import "fmt"
-
 type TelegramRps struct {
-	packet
+	*packet
 	senderId      [4]byte
 	destinationId [4]byte
 	data          byte
@@ -11,9 +9,8 @@ type TelegramRps struct {
 }
 
 func NewTelegramRps() *TelegramRps {
-	header := &header{}
 	return &TelegramRps{
-		packet:        packet{syncByte: 0x55, header: header},
+		packet:        NewPacket(),
 		senderId:      [4]byte{0x00, 0x00, 0x00, 0x00}, //this can default to 00 since usb300 will add its own senderid
 		destinationId: [4]byte{0xff, 0xff, 0xff, 0xff},
 		status:        0,
@@ -30,7 +27,7 @@ func (p *TelegramRps) Process() {
 	p.data = p.packet.data[1]
 }
 
-func (p *TelegramRps) Data() []byte {
+func (p *TelegramRps) TelegramData() []byte {
 	return []byte{p.data}
 }
 
@@ -46,6 +43,10 @@ func (p *TelegramRps) SetSenderId(data [4]byte) {
 }
 func (p *TelegramRps) SetStatus(data byte) {
 	p.status = data
+}
+
+func (p *TelegramRps) Status() byte {
+	return p.status
 }
 func (p *TelegramRps) Encode() []byte {
 
@@ -67,25 +68,4 @@ func (p *TelegramRps) Encode() []byte {
 	p.packet.SetPacketType(0x01)
 
 	return p.packet.Encode()
-}
-
-func (p *TelegramRps) Action() string {
-
-	//THIS WORKS. but must be refactored since it is part of EEP F6-02-01 and not the general RPS RORG type!
-	fmt.Printf("raw action: %b\n", p.data)
-	n := p.data >> 5
-	fmt.Printf("bit action: %b\n", n)
-	fmt.Printf("EB: %d\n", hasBit(p.data, 4)) // this also works :)
-	switch n {
-	case 0:
-		return "Button A-ON"
-	case 1:
-		return "Button A-OFF"
-	case 2:
-		return "Button B-ON"
-	case 3:
-		return "Button B-OFF"
-
-	}
-	return "INGET"
 }

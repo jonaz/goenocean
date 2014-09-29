@@ -56,18 +56,7 @@ func TestDecode(t *testing.T) {
 		t.Errorf("Decoding failed with error: %s", err)
 	}
 	if !p.Equal(pkg) {
+		//if !reflect.DeepEqual(p, pkg) {
 		t.Errorf("Packets not equal: \n%+v\n%+v", p, pkg)
-	}
-}
-
-func TestEncodeRpsTelegram(t *testing.T) {
-	p := NewTelegramRps()
-	p.SetSenderId([4]byte{0xfe, 0xfe, 0x74, 0x9b}) //the hardcoded senderid of my PTM215 button
-	p.SetTelegramData(0x70)
-
-	encoded := p.Encode()
-	// data = 1110000 here
-	if ToHex(encoded) != "55 00 07 07 01 7a f6 70 fe fe 74 9b 00 03 ff ff ff ff ff 00 22" {
-		t.Errorf("encoding failed: %s", ToHex(encoded))
 	}
 }
