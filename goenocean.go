@@ -30,6 +30,10 @@ func getPacket(packetType, rorg byte) Packet {
 		switch rorg {
 		case TelegramTypeRps:
 			return NewTelegramRps()
+		case TelegramTypeVld:
+			return NewTelegramVld()
+		case TelegramType4bs:
+			return NewTelegram4bs()
 		}
 	}
 
