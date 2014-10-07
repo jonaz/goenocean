@@ -14,15 +14,6 @@ func (p *EepF60201) SetTelegram(t *TelegramRps) { // {{{
 	p.TelegramRps = t
 } // }}}
 
-func (p *EepF60201) RepeatCount() uint8 { // {{{
-	return p.status & 0x0f
-}                                                 // }}}
-func (p *EepF60201) SetRepeatCount(count uint8) { // {{{
-	//TODO find out how to set bit 210 here http://stackoverflow.com/questions/23192262/how-would-you-set-and-clear-a-single-bit-in-go http://stackoverflow.com/questions/4439078/how-do-you-set-only-certain-bits-of-a-byte-in-c-without-affecting-the-rest
-	p.status &^= 0x0f        //zero first 4 bits
-	p.status |= count & 0x0f //set the 4 bits from count
-} // }}}
-
 func (p *EepF60201) T21() bool { // {{{
 	data := (p.status >> 5) & 0x01
 	if data == 1 {
@@ -53,7 +44,7 @@ func (p *EepF60201) SetNu(data bool) { // {{{
 	p.status = clearBit(p.status, 4)
 }                                      // }}}
 func (p *EepF60201) EnergyBow() bool { // {{{
-	data := (p.data >> 4) & 0x01
+	data := (p.TelegramData() >> 4) & 0x01
 	if data == 1 {
 		return true
 	}
@@ -68,7 +59,7 @@ func (p *EepF60201) R1B0() bool {
 }
 
 func (p *EepF60201) r1() uint {
-	n := p.data >> 5
+	n := p.TelegramData() >> 5
 	return uint(n)
 }
 
@@ -85,8 +76,8 @@ func (p *EepF60201) R2B0() bool {
 	return false
 }
 func (p *EepF60201) r2() uint {
-	if p.data&0x01 == 1 {
-		n := (p.data >> 1) & 0x07
+	if p.TelegramData()&0x01 == 1 {
+		n := (p.TelegramData() >> 1) & 0x07
 		return uint(n)
 	}
 	return 0xff
@@ -94,8 +85,8 @@ func (p *EepF60201) r2() uint {
 
 func (p *EepF60201) Action() string {
 	//@flags = {:t21 => (@status >> 5) & 0x01, :nu => (@status >> 4) & 0x01 }
-	fmt.Printf("raw action: %b\n", p.data)
-	n := p.data >> 5
+	fmt.Printf("raw action: %b\n", p.TelegramData())
+	n := p.TelegramData() >> 5
 	fmt.Printf("bit action: %b\n", n)
 	switch n {
 	case 0:

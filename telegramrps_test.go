@@ -13,8 +13,9 @@ func TestEncodeRpsTelegram(t *testing.T) {
 
 	encoded := p.Encode()
 
-	if ToHex(encoded) != "55 00 07 07 01 7a f6 70 fe fe 74 9b 03 03 ff ff ff ff ff 00 17" {
-		t.Errorf("encoding failed: %s", ToHex(encoded))
+	expected := "55 00 07 07 01 7a f6 70 fe fe 74 9b 03 03 ff ff ff ff ff 00 17"
+	if ToHex(encoded) != expected {
+		t.Errorf("encoding failed: \n%s\n%s", ToHex(encoded), expected)
 	}
 }
 
