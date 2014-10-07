@@ -15,7 +15,7 @@ func (p *EepF60201) SetTelegram(t *TelegramRps) { // {{{
 } // }}}
 
 func (p *EepF60201) T21() bool { // {{{
-	data := (p.status >> 5) & 0x01
+	data := (p.Status() >> 5) & 0x01
 	if data == 1 {
 		return true
 	}
@@ -23,14 +23,14 @@ func (p *EepF60201) T21() bool { // {{{
 }                                       // }}}
 func (p *EepF60201) SetT21(data bool) { // {{{
 	if data {
-		p.status = setBit(p.status, 5)
+		p.SetStatus(setBit(p.Status(), 5))
 		return
 	}
-	p.status = clearBit(p.status, 5)
+	p.SetStatus(clearBit(p.Status(), 5))
 } // }}}
 
 func (p *EepF60201) Nu() bool { // {{{
-	data := (p.status >> 4) & 0x01
+	data := (p.Status() >> 4) & 0x01
 	if data == 1 {
 		return true
 	}
@@ -38,13 +38,13 @@ func (p *EepF60201) Nu() bool { // {{{
 }                                      // }}}
 func (p *EepF60201) SetNu(data bool) { // {{{
 	if data {
-		p.status = setBit(p.status, 4)
+		p.SetStatus(setBit(p.Status(), 4))
 		return
 	}
-	p.status = clearBit(p.status, 4)
+	p.SetStatus(clearBit(p.Status(), 4))
 }                                      // }}}
 func (p *EepF60201) EnergyBow() bool { // {{{
-	data := (p.TelegramData() >> 4) & 0x01
+	data := (p.TelegramData()[0] >> 4) & 0x01
 	if data == 1 {
 		return true
 	}
@@ -59,7 +59,7 @@ func (p *EepF60201) R1B0() bool {
 }
 
 func (p *EepF60201) r1() uint {
-	n := p.TelegramData() >> 5
+	n := p.TelegramData()[0] >> 5
 	return uint(n)
 }
 
@@ -76,8 +76,8 @@ func (p *EepF60201) R2B0() bool {
 	return false
 }
 func (p *EepF60201) r2() uint {
-	if p.TelegramData()&0x01 == 1 {
-		n := (p.TelegramData() >> 1) & 0x07
+	if p.TelegramData()[0]&0x01 == 1 {
+		n := (p.TelegramData()[0] >> 1) & 0x07
 		return uint(n)
 	}
 	return 0xff
@@ -86,7 +86,7 @@ func (p *EepF60201) r2() uint {
 func (p *EepF60201) Action() string {
 	//@flags = {:t21 => (@status >> 5) & 0x01, :nu => (@status >> 4) & 0x01 }
 	fmt.Printf("raw action: %b\n", p.TelegramData())
-	n := p.TelegramData() >> 5
+	n := p.TelegramData()[0] >> 5
 	fmt.Printf("bit action: %b\n", n)
 	switch n {
 	case 0:

@@ -1,6 +1,7 @@
 package goenocean
 
 import (
+	"bytes"
 	"reflect"
 	"testing"
 )
@@ -8,7 +9,7 @@ import (
 func TestEncodeRpsTelegram(t *testing.T) {
 	p := NewTelegramRps()
 	p.SetSenderId([4]byte{0xfe, 0xfe, 0x74, 0x9b})
-	p.SetTelegramData(0x70)
+	p.SetTelegramData([]byte{0x70})
 	p.SetStatus(3)
 
 	encoded := p.Encode()
@@ -22,10 +23,10 @@ func TestEncodeRpsTelegram(t *testing.T) {
 func TestRpsTelegramData(t *testing.T) {
 	p := NewTelegramRps()
 	p.SetSenderId([4]byte{0xfe, 0xfe, 0x74, 0x9b})
-	p.SetTelegramData(0x70)
+	p.SetTelegramData([]byte{0x70})
 	p.SetStatus(3)
 
-	if p.TelegramData() != 0x70 {
+	if !bytes.Equal(p.TelegramData(), []byte{0x70}) {
 		t.Errorf("wrong data failed: %v != %v", p.Data(), []byte{0x70})
 	}
 }
@@ -33,7 +34,7 @@ func TestRpsTelegramData(t *testing.T) {
 func TestDecodeRpsTelegram(t *testing.T) {
 	p := NewTelegramRps()
 	p.SetSenderId([4]byte{0xfe, 0xfe, 0x74, 0x9b})
-	p.SetTelegramData(0x70)
+	p.SetTelegramData([]byte{0x70})
 	p.SetStatus(3)
 
 	encoded := p.Encode()

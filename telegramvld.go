@@ -9,11 +9,3 @@ func NewTelegramVld() *TelegramVld {
 	t.telegramType = TelegramTypeVld
 	return t
 }
-
-func (p *TelegramVld) TelegramData() []byte {
-	return p.data
-}
-
-func (p *TelegramVld) SetTelegramData(data []byte) {
-	p.data = data
-}

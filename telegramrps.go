@@ -10,15 +10,6 @@ func NewTelegramRps() *TelegramRps {
 	return t
 }
 
-func (p *TelegramRps) TelegramData() byte {
-	return p.data[0]
-}
-
-func (p *TelegramRps) SetTelegramData(data byte) {
-	p.data = make([]byte, 1)
-	p.data[0] = data
-}
-
 func (p *TelegramRps) RepeatCount() uint8 { // {{{
 	return p.Status() & 0x0f
 }                                                   // }}}

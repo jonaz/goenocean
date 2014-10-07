@@ -8,7 +8,7 @@ import (
 func TestEepf60201(t *testing.T) {
 	p := NewEepF60201()
 	p.SetSenderId([4]byte{0xfe, 0xfe, 0x74, 0x9b})
-	p.SetTelegramData(0x70) // ON
+	p.SetTelegramData([]byte{0x70}) // ON
 	p.SetStatus(3)
 
 	p.SetT21(true)
