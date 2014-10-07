@@ -39,7 +39,6 @@ func getPacket(packetType, rorg byte) Packet {
 
 	//return default packet
 	return NewPacket()
-	//return nil
 }
 
 func PrintHex(a []byte) { // {{{

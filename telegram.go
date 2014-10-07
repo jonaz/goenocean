@@ -7,6 +7,13 @@ const (
 	TelegramTypeVld = 0xd2
 )
 
+type Telegram interface {
+	Encode() []byte
+	SenderId() [4]byte
+	TelegramData() []byte
+	TelegramType() byte
+}
+
 type telegram struct {
 	*packet
 	senderId      [4]byte
@@ -25,7 +32,7 @@ func NewTelegram() *telegram {
 func (p *telegram) Encode() []byte {
 
 	// 1 byte data + 4 byte sender id + 1 byte status
-	data := []byte{p.telegramType}
+	data := []byte{p.TelegramType()}
 	data = append(data, p.data...)
 	data = append(data, p.senderId[:]...)
 	data = append(data, p.status)
@@ -55,6 +62,9 @@ func (p *telegram) Process() {
 	p.data = p.packet.data[1 : length-5]
 }
 
+func (p *telegram) TelegramType() byte {
+	return p.telegramType
+}
 func (p *telegram) DestinationId() [4]byte {
 	return p.destinationId
 }

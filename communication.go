@@ -9,7 +9,11 @@ import (
 	"github.com/tarm/goserial"
 )
 
-func Serial(send chan Packet, recv chan Packet) {
+type Encoder interface {
+	Encode() []byte
+}
+
+func Serial(send chan Encoder, recv chan Packet) {
 	c := &serial.Config{Name: "/dev/ttyUSB0", Baud: 57600}
 	s, err := serial.OpenPort(c)
 	if err != nil {
@@ -23,7 +27,7 @@ func Serial(send chan Packet, recv chan Packet) {
 	go sender(s, send)
 }
 
-func sender(data io.ReadWriter, send chan Packet) {
+func sender(data io.ReadWriter, send chan Encoder) {
 
 	for p := range send {
 		_, err := data.Write(p.Encode())
@@ -44,7 +48,6 @@ func reciever(data []byte, recv chan Packet) {
 }
 
 func readPackets(rd io.ReadWriter, f func([]byte)) {
-	//TODO use this example receivePacket when reading from serial https://github.com/kleckse/enocean/blob/master/esp3.py
 
 	buf := make([]byte, 1)
 	var rawPacket []byte
