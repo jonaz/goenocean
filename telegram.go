@@ -8,9 +8,12 @@ const (
 )
 
 type Telegram interface {
+	Packet
 	Encode() []byte
-	SenderId() [4]byte
+	//SenderId() [4]byte
+	SetSenderId([4]byte)
 	TelegramData() []byte
+	SetTelegramData([]byte)
 	TelegramType() byte
 	Status() byte
 	SetStatus(byte)

@@ -3,14 +3,15 @@ package goenocean
 import "fmt"
 
 type EepF60201 struct {
-	*TelegramRps
+	//*TelegramRps
+	TelegramRps
 }
 
 func NewEepF60201() *EepF60201 { // {{{
 	return &EepF60201{NewTelegramRps()}
 } // }}}
 
-func (p *EepF60201) SetTelegram(t *TelegramRps) { // {{{
+func (p *EepF60201) SetTelegram(t TelegramRps) { // {{{
 	p.TelegramRps = t
 } // }}}
 

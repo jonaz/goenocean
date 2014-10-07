@@ -56,6 +56,7 @@ type Packet interface {
 	OptData() []byte
 	Process()
 	SenderId() [4]byte
+	Equal(Packet) bool
 }
 
 type packet struct {
