@@ -61,7 +61,8 @@ func readPackets(rd io.ReadWriter, f func([]byte)) {
 			continue
 		}
 
-		fmt.Printf("% x ", buf)
+		//TODO add debug here seelog
+		//fmt.Printf("% x ", buf)
 		//continue
 
 		if readLen > 0 && buf[0] == 0x55 {
