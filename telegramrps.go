@@ -5,8 +5,8 @@ type TelegramRps struct {
 }
 
 func NewTelegramRps() *TelegramRps {
-	t := &TelegramRps{
-		telegram: NewTelegram()}
+	t := &TelegramRps{telegram: NewTelegram()}
+	t.telegramType = TelegramTypeRps
 	return t
 }
 

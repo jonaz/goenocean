@@ -13,6 +13,7 @@ type telegram struct {
 	destinationId [4]byte
 	data          []byte
 	status        byte
+	telegramType  byte
 }
 
 func NewTelegram() *telegram {
@@ -24,7 +25,7 @@ func NewTelegram() *telegram {
 func (p *telegram) Encode() []byte {
 
 	// 1 byte data + 4 byte sender id + 1 byte status
-	data := []byte{TelegramTypeRps}
+	data := []byte{p.telegramType}
 	data = append(data, p.data...)
 	data = append(data, p.senderId[:]...)
 	data = append(data, p.status)
