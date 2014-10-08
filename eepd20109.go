@@ -41,6 +41,7 @@ func (p *EepD20109) SetOutputValue(count uint8) {
 	p.SetTelegramData(tmp)
 }
 
+//DimValue only valid for command id 1
 func (p *EepD20109) DimValue() uint8 {
 	return (p.TelegramData()[1] & 0xe0) >> 5
 }
@@ -58,4 +59,10 @@ func (p *EepD20109) LocalControl() uint8 {
 }
 func (p *EepD20109) IOChannel() uint8 {
 	return p.TelegramData()[1] & 0x1f
+}
+func (p *EepD20109) SetIOChannel(count uint8) {
+	tmp := p.TelegramData()
+	tmp[1] &^= 0x1f        //zero first 5 bits
+	tmp[1] |= count & 0x1f //set the 5 bits from count
+	p.SetTelegramData(tmp)
 }
