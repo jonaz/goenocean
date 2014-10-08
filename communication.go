@@ -40,6 +40,9 @@ func sender(data io.ReadWriter, send chan Encoder) {
 
 func reciever(data []byte, recv chan Packet) {
 	p, err := Decode(data)
+	fmt.Printf("%#v\n", p)
+	fmt.Printf("%#v\n", p.Header())
+	fmt.Printf("Data: %#v\n", p.Data())
 	if err != nil {
 		fmt.Println(err)
 		return

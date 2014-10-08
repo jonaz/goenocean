@@ -18,6 +18,8 @@ type Telegram interface {
 	TelegramType() byte
 	Status() byte
 	SetStatus(byte)
+	DestinationId() [4]byte
+	SetDestinationId([4]byte)
 }
 
 type telegram struct {
@@ -74,6 +76,9 @@ func (p *telegram) TelegramType() byte {
 }
 func (p *telegram) DestinationId() [4]byte {
 	return p.destinationId
+}
+func (p *telegram) SetDestinationId(id [4]byte) {
+	p.destinationId = id
 }
 func (p *telegram) TelegramData() []byte {
 	p.RLock()

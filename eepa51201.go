@@ -4,15 +4,15 @@ import "math/big"
 
 type EepA51201 struct {
 	//*Telegram4bs
-	Telegram
+	Telegram4bs
 }
 
 func NewEepA51201() *EepA51201 { // {{{
 	return &EepA51201{NewTelegram4bs()}
 } // }}}
 
-func (p *EepA51201) SetTelegram(t Telegram) { // {{{
-	p.Telegram = t
+func (p *EepA51201) SetTelegram(t Telegram4bs) { // {{{
+	p.Telegram4bs = t
 } // }}}
 
 func (p *EepA51201) MeterReading() int64 {
