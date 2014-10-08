@@ -26,6 +26,17 @@ func (p *EepA53808) SetCommand(cmd uint8) {
 	p.SetTelegramData(tmp)
 }
 
+//TODO check if Learn can be moved to Telegram4bs since its always at the same bit
+func (p *EepA53808) Learn() bool {
+	// 0 : teach in telegram
+	// 1 : data telegram
+	return true
+}
+func (p *EepA53808) SetLearn(lrn bool) {
+	// 0 : teach in telegram
+	// 1 : data telegram
+}
+
 //func (p *EepA53808) TariffInfo() uint8 {
 //ti := (p.TelegramData()[3] & 0x0f0) >> 4
 //return ti
