@@ -1,5 +1,7 @@
 package goenocean
 
+import "sync"
+
 const (
 	TelegramTypeRps = 0xf6
 	TelegramType1bs = 0xd5
@@ -10,7 +12,6 @@ const (
 type Telegram interface {
 	Packet
 	Encode() []byte
-	//SenderId() [4]byte
 	SetSenderId([4]byte)
 	TelegramData() []byte
 	SetTelegramData([]byte)
@@ -26,6 +27,7 @@ type telegram struct {
 	data          []byte
 	status        byte
 	telegramType  byte
+	sync.RWMutex
 }
 
 func NewTelegram() *telegram {
@@ -74,23 +76,35 @@ func (p *telegram) DestinationId() [4]byte {
 	return p.destinationId
 }
 func (p *telegram) TelegramData() []byte {
+	p.RLock()
+	defer p.RUnlock()
 	return p.data
 }
 
 func (p *telegram) SetTelegramData(data []byte) {
+	p.Lock()
+	defer p.Unlock()
 	p.data = data
 }
 
 func (p *telegram) SenderId() [4]byte {
+	p.RLock()
+	defer p.RUnlock()
 	return p.senderId
 }
 func (p *telegram) SetSenderId(data [4]byte) {
+	p.Lock()
+	defer p.Unlock()
 	p.senderId = data
 }
 func (p *telegram) SetStatus(data byte) {
+	p.Lock()
+	defer p.Unlock()
 	p.status = data
 }
 func (p *telegram) Status() byte {
+	p.RLock()
+	defer p.RUnlock()
 	return p.status
 }
 
