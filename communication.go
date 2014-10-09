@@ -39,19 +39,20 @@ func Serial(send chan Request, recv chan Packet) {
 	}
 
 	response := make(chan Packet)
+	waitForResponse := make(chan bool)
 
 	go readPackets(s, func(data []byte) {
-		reciever(data, recv, response)
+		reciever(data, recv, response, waitForResponse)
 	})
 
-	go sender(s, send, response)
+	go sender(s, send, response, waitForResponse)
 }
 
-func sender(data io.ReadWriter, send chan Request, response chan Packet) {
+func sender(data io.ReadWriter, send chan Request, response chan Packet, waitForResponse chan bool) {
 
 	for r := range send {
 		_, err := data.Write(r.Encode())
-		response <- nil
+		waitForResponse <- true
 		r.ResponseChannel() <- <-response //TODO test this. might work :)
 		if err != nil {
 			log.Fatal(err)
@@ -60,7 +61,7 @@ func sender(data io.ReadWriter, send chan Request, response chan Packet) {
 
 }
 
-func reciever(data []byte, recv chan Packet, response chan Packet) {
+func reciever(data []byte, recv chan Packet, response chan Packet, waitForResponse chan bool) {
 	p, err := Decode(data)
 	fmt.Printf("%#v\n", p)
 	fmt.Printf("%#v\n", p.Header())
@@ -71,7 +72,7 @@ func reciever(data []byte, recv chan Packet, response chan Packet) {
 	}
 
 	select {
-	case <-response:
+	case <-waitForResponse:
 		response <- p
 	default:
 		recv <- p
