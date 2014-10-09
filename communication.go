@@ -2,10 +2,9 @@ package goenocean
 
 import (
 	"encoding/binary"
-	"fmt"
 	"io"
-	"log"
 
+	log "github.com/cihub/seelog"
 	"github.com/tarm/goserial"
 )
 
@@ -17,7 +16,7 @@ func Serial(send chan Encoder, recv chan Packet) {
 	c := &serial.Config{Name: "/dev/ttyUSB0", Baud: 57600}
 	s, err := serial.OpenPort(c)
 	if err != nil {
-		log.Fatal(err)
+		log.Critical(err)
 	}
 
 	go readPackets(s, func(data []byte) {
@@ -32,7 +31,7 @@ func sender(data io.ReadWriter, send chan Encoder) {
 	for p := range send {
 		_, err := data.Write(p.Encode())
 		if err != nil {
-			log.Fatal(err)
+			log.Critical(err)
 		}
 	}
 
@@ -40,11 +39,11 @@ func sender(data io.ReadWriter, send chan Encoder) {
 
 func reciever(data []byte, recv chan Packet) {
 	p, err := Decode(data)
-	fmt.Printf("%#v\n", p)
-	fmt.Printf("%#v\n", p.Header())
-	fmt.Printf("Data: %#v\n", p.Data())
+	log.Debugf("%#v\n", p)
+	log.Debugf("%#v\n", p.Header())
+	log.Debugf("Data: %#v\n", p.Data())
 	if err != nil {
-		fmt.Println(err)
+		log.Error("Decode failed :", err)
 		return
 	}
 	recv <- p
@@ -60,12 +59,12 @@ func readPackets(rd io.ReadWriter, f func([]byte)) {
 	for {
 		readLen, err := rd.Read(buf)
 		if err != nil {
-			fmt.Println("ERROR reading:", err)
+			log.Error("ERROR reading:", err)
 			continue
 		}
 
 		//TODO add debug here seelog
-		//fmt.Printf("% x ", buf)
+		log.Infof("% x ", buf)
 		//continue
 
 		if readLen > 0 && buf[0] == 0x55 {
