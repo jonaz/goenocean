@@ -13,16 +13,25 @@ type Encoder interface {
 	Encode() []byte
 }
 
-type Request struct {
-	packet          Encoder
+type request struct {
+	Encoder
 	responseChannel chan Packet
 }
 
-func NewRequest(p Encoder) *Request {
-	return &Request{p, make(chan Packet)}
+type Request interface {
+	Encoder
+	ResponseChannel() chan Packet
 }
 
-func Serial(send chan *Request, recv chan Packet) {
+func (r *request) ResponseChannel() chan Packet {
+	return r.responseChannel
+}
+
+func NewRequest(p Encoder) Request {
+	return &request{p, make(chan Packet)}
+}
+
+func Serial(send chan Request, recv chan Packet) {
 	c := &serial.Config{Name: "/dev/ttyUSB0", Baud: 57600}
 	s, err := serial.OpenPort(c)
 	if err != nil {
@@ -38,12 +47,12 @@ func Serial(send chan *Request, recv chan Packet) {
 	go sender(s, send, response)
 }
 
-func sender(data io.ReadWriter, send chan *Request, response chan Packet) {
+func sender(data io.ReadWriter, send chan Request, response chan Packet) {
 
 	for r := range send {
-		_, err := data.Write(r.packet.Encode())
+		_, err := data.Write(r.Encode())
 		response <- nil
-		r.responseChannel <- <-response //TODO test this. might work :)
+		r.ResponseChannel() <- <-response //TODO test this. might work :)
 		if err != nil {
 			log.Fatal(err)
 		}
