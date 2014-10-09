@@ -13,24 +13,37 @@ type Encoder interface {
 	Encode() []byte
 }
 
-func Serial(send chan Encoder, recv chan Packet) {
+type Request struct {
+	packet          Encoder
+	responseChannel chan Packet
+}
+
+func NewRequest(p Encoder) *Request {
+	return &Request{p, make(chan Packet)}
+}
+
+func Serial(send chan *Request, recv chan Packet) {
 	c := &serial.Config{Name: "/dev/ttyUSB0", Baud: 57600}
 	s, err := serial.OpenPort(c)
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	response := make(chan Packet)
+
 	go readPackets(s, func(data []byte) {
-		reciever(data, recv)
+		reciever(data, recv, response)
 	})
 
-	go sender(s, send)
+	go sender(s, send, response)
 }
 
-func sender(data io.ReadWriter, send chan Encoder) {
+func sender(data io.ReadWriter, send chan *Request, response chan Packet) {
 
-	for p := range send {
-		_, err := data.Write(p.Encode())
+	for r := range send {
+		_, err := data.Write(r.packet.Encode())
+		response <- nil
+		r.responseChannel <- <-response //TODO test this. might work :)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -38,7 +51,7 @@ func sender(data io.ReadWriter, send chan Encoder) {
 
 }
 
-func reciever(data []byte, recv chan Packet) {
+func reciever(data []byte, recv chan Packet, response chan Packet) {
 	p, err := Decode(data)
 	fmt.Printf("%#v\n", p)
 	fmt.Printf("%#v\n", p.Header())
@@ -47,7 +60,13 @@ func reciever(data []byte, recv chan Packet) {
 		fmt.Println(err)
 		return
 	}
-	recv <- p
+
+	select {
+	case <-response:
+		response <- p
+	default:
+		recv <- p
+	}
 }
 
 func readPackets(rd io.ReadWriter, f func([]byte)) {
