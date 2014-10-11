@@ -1,7 +1,5 @@
 package goenocean
 
-import "fmt"
-
 type EepF60201 struct {
 	//*TelegramRps
 	TelegramRps
@@ -58,6 +56,12 @@ func (p *EepF60201) R1B0() bool {
 	}
 	return false
 }
+func (p *EepF60201) R1B1() bool {
+	if p.r1() == 2 {
+		return true
+	}
+	return false
+}
 
 func (p *EepF60201) r1() uint {
 	n := p.TelegramData()[0] >> 5
@@ -84,21 +88,21 @@ func (p *EepF60201) r2() uint {
 	return 0xff
 }
 
-func (p *EepF60201) Action() string {
-	//@flags = {:t21 => (@status >> 5) & 0x01, :nu => (@status >> 4) & 0x01 }
-	fmt.Printf("raw action: %b\n", p.TelegramData())
-	n := p.TelegramData()[0] >> 5
-	fmt.Printf("bit action: %b\n", n)
-	switch n {
-	case 0:
-		return "Button A-ON"
-	case 1:
-		return "Button A-OFF"
-	case 2:
-		return "Button B-ON"
-	case 3:
-		return "Button B-OFF"
+//func (p *EepF60201) Action() string {
+////@flags = {:t21 => (@status >> 5) & 0x01, :nu => (@status >> 4) & 0x01 }
+//fmt.Printf("raw action: %b\n", p.TelegramData())
+//n := p.TelegramData()[0] >> 5
+//fmt.Printf("bit action: %b\n", n)
+//switch n {
+//case 0:
+//return "Button A-ON"
+//case 1:
+//return "Button A-OFF"
+//case 2:
+//return "Button B-ON"
+//case 3:
+//return "Button B-OFF"
 
-	}
-	return "INGET"
-}
+//}
+//return "INGET"
+//}
