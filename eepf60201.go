@@ -62,10 +62,25 @@ func (p *EepF60201) R1B1() bool {
 	}
 	return false
 }
+func (p *EepF60201) R1A0() bool {
+	if p.r1() == 1 {
+		return true
+	}
+	return false
+}
+func (p *EepF60201) R1A1() bool {
+	if p.r1() == 0 && p.EnergyBow() {
+		return true
+	}
+	return false
+}
 
 func (p *EepF60201) r1() uint {
-	n := p.TelegramData()[0] >> 5
-	return uint(n)
+	if p.TelegramData()[0]&0x01 == 0 {
+		n := p.TelegramData()[0] >> 5
+		return uint(n)
+	}
+	return 5
 }
 
 func (p *EepF60201) R2B1() bool {
@@ -85,7 +100,7 @@ func (p *EepF60201) r2() uint {
 		n := (p.TelegramData()[0] >> 1) & 0x07
 		return uint(n)
 	}
-	return 0xff
+	return 0x01
 }
 
 //func (p *EepF60201) Action() string {
