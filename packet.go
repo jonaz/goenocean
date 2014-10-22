@@ -57,6 +57,7 @@ type Packet interface {
 	Process()
 	SenderId() [4]byte
 	Equal(Packet) bool
+	PacketType() byte
 }
 
 type packet struct {
