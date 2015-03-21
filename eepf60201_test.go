@@ -27,3 +27,16 @@ func TestEepf60201(t *testing.T) {
 	//t.Errorf("encoding failed: %s", ToHex(encoded))
 	//}
 }
+
+// 55 00 07 07 01 7a f6 70 01 8d f8 bd 30 01 ff ff ff ff 55 00 8b
+func TestEepf60201PacketContains0x55(t *testing.T) {
+
+	pkg, err := Decode([]byte{0x55, 0x00, 0x07, 0x07, 0x01, 0x7a, 0xf6, 0x70, 0x01, 0x8d, 0xf8, 0xbd, 0x30, 0x01, 0xff, 0xff, 0xff, 0xff, 0x55, 0x00, 0x8b})
+	if err != nil {
+		t.Error("Decode failed with error: ", err)
+	}
+
+	pkg.Process()
+	fmt.Println(ToHex(pkg.Data()))
+
+}
