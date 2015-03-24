@@ -62,6 +62,9 @@ func readPackets(rd io.ReadWriter, f func([]byte)) {
 	for {
 		readLen, err := rd.Read(buf)
 		if err != nil {
+			if err == io.EOF {
+				return
+			}
 			log.Error("ERROR reading:", err)
 			continue
 		}
