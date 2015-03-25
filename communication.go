@@ -71,7 +71,6 @@ func readPackets(rd io.ReadWriter, f func([]byte)) {
 
 		//TODO add debug here seelog
 		log.Infof("% x ", buf)
-		//continue
 
 		if readLen > 0 && buf[0] == 0x55 && state == 0 {
 			rawPacket = []byte{}
