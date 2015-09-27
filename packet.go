@@ -41,6 +41,7 @@ func (h *header) Equal(o *header) bool { // {{{
 } // }}}
 
 type Packet interface {
+	Encoder
 	SetSyncByte(byte)
 	SetHeaderFromBytes([]byte)
 	ValidateCrc() error

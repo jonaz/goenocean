@@ -1,8 +1,10 @@
 package goenocean
 
 import (
+	"bytes"
 	"encoding/binary"
 	"io"
+	"time"
 
 	log "github.com/cihub/seelog"
 	"github.com/tarm/goserial"
@@ -19,26 +21,47 @@ func Serial(send chan Encoder, recv chan Packet) {
 		log.Critical(err)
 	}
 
+	response := make(chan Packet, 100)
 	go readPackets(s, func(data []byte) {
-		reciever(data, recv)
+		reciever(data, recv, response)
 	})
 
-	go sender(s, send)
+	go sender(s, send, response)
 }
 
-func sender(data io.ReadWriter, send chan Encoder) {
+func sender(data io.ReadWriter, send chan Encoder, response chan Packet) {
 	//TODO change to io.Writer
 
 	for p := range send {
+		gotResponse := make(chan struct{})
+		go waitForResponse(gotResponse, response)
 		_, err := data.Write(p.Encode())
+		//Dont send next until we have a response from the last one
+		<-gotResponse
 		if err != nil {
 			log.Critical(err)
 		}
 	}
+}
+
+func waitForResponse(weGotResponse chan struct{}, response chan Packet) {
+	select {
+	case p := <-response:
+		log.Debugf("We got response after send: % x\n", p.Encode())
+		if !bytes.Equal(p.Data(), []byte{0}) {
+			log.Errorf("We got RESPONSE error after send: % x\n", p.Encode())
+		}
+		weGotResponse <- struct{}{}
+		return
+	case <-time.After(time.Second * 2):
+		log.Error("We got TIMOUT after send")
+		weGotResponse <- struct{}{}
+		return
+	}
 
 }
 
-func reciever(data []byte, recv chan Packet) {
+func reciever(data []byte, recv chan Packet, resp chan Packet) {
 	p, err := Decode(data)
 	log.Debugf("%#v\n", p)
 	log.Debugf("%#v\n", p.Header())
@@ -46,6 +69,9 @@ func reciever(data []byte, recv chan Packet) {
 	if err != nil {
 		log.Error("Decode failed :", err)
 		return
+	}
+	if p.PacketType() == 2 {
+		resp <- p
 	}
 	recv <- p
 }
@@ -69,8 +95,7 @@ func readPackets(rd io.ReadWriter, f func([]byte)) {
 			continue
 		}
 
-		//TODO add debug here seelog
-		log.Infof("% x ", buf)
+		log.Debugf("% x ", buf)
 
 		if readLen > 0 && buf[0] == 0x55 && state == 0 {
 			rawPacket = []byte{}

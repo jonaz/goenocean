@@ -11,7 +11,6 @@ const (
 
 type Telegram interface {
 	Packet
-	Encode() []byte
 	SetSenderId([4]byte)
 	TelegramData() []byte
 	SetTelegramData([]byte)
