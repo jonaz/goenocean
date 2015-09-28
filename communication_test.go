@@ -53,3 +53,17 @@ func TestReadPacketsType2(t *testing.T) {
 		t.Error("Expected to have found 2 packets")
 	}
 }
+
+//func TestSender(t *testing.T) {
+//TODO finish this and make sender quittable
+
+//buf := bytes.NewBuffer([]byte{})
+
+//response := make(chan Packet, 100)
+//send := make(chan Encoder, 100)
+//sender(buf, send, response)
+
+////p := NewPacket()
+//t.Logf("Pkt: % x\n", buf)
+
+//}

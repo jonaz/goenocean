@@ -29,8 +29,7 @@ func Serial(send chan Encoder, recv chan Packet) {
 	go sender(s, send, response)
 }
 
-func sender(data io.ReadWriter, send chan Encoder, response chan Packet) {
-	//TODO change to io.Writer
+func sender(data io.Writer, send chan Encoder, response chan Packet) {
 
 	for p := range send {
 		gotResponse := make(chan struct{})
@@ -76,9 +75,7 @@ func reciever(data []byte, recv chan Packet, resp chan Packet) {
 	recv <- p
 }
 
-func readPackets(rd io.ReadWriter, f func([]byte)) {
-	//TODO change to io.Reader
-	//TODO write tests for readPackets. create rd stub which has a  Read(p []byte) (n int, err error)
+func readPackets(rd io.Reader, f func([]byte)) {
 
 	buf := make([]byte, 1)
 	var rawPacket []byte
