@@ -70,7 +70,7 @@ func reciever(data []byte, recv chan Packet, resp chan Packet) {
 		log.Error("Decode failed :", err)
 		return
 	}
-	if p.PacketType() == 2 {
+	if p.PacketType() == PacketTypeResponse {
 		resp <- p
 	}
 	recv <- p
