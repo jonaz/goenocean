@@ -70,7 +70,10 @@ func reciever(data []byte, recv chan Packet, resp chan Packet) {
 		return
 	}
 	if p.PacketType() == PacketTypeResponse {
-		resp <- p
+		select { // Nonblocking send just in case
+		case resp <- p:
+		default:
+		}
 	}
 	recv <- p
 }
