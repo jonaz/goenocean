@@ -7,18 +7,18 @@ import (
 	"time"
 
 	log "github.com/cihub/seelog"
-	"github.com/tarm/goserial"
+	serial "github.com/tarm/goserial"
 )
 
 type Encoder interface {
 	Encode() []byte
 }
 
-func Serial(send chan Encoder, recv chan Packet) {
-	c := &serial.Config{Name: "/dev/ttyUSB0", Baud: 57600}
+func Serial(dev string, send chan Encoder, recv chan Packet) error {
+	c := &serial.Config{Name: dev, Baud: 57600}
 	s, err := serial.OpenPort(c)
 	if err != nil {
-		log.Critical(err)
+		return err
 	}
 
 	response := make(chan Packet, 100)
@@ -27,6 +27,7 @@ func Serial(send chan Encoder, recv chan Packet) {
 	})
 
 	go sender(s, send, response)
+	return nil
 }
 
 func sender(data io.Writer, send chan Encoder, response chan Packet) {
