@@ -6,7 +6,7 @@ import (
 	"io"
 	"time"
 
-	log "github.com/cihub/seelog"
+	"github.com/sirupsen/logrus"
 	serial "github.com/tarm/goserial"
 )
 
@@ -39,7 +39,7 @@ func sender(data io.Writer, send chan Encoder, response chan Packet) {
 		//Dont send next until we have a response from the last one
 		<-gotResponse
 		if err != nil {
-			log.Critical(err)
+			logrus.Error(err)
 		}
 	}
 }
@@ -47,14 +47,14 @@ func sender(data io.Writer, send chan Encoder, response chan Packet) {
 func waitForResponse(weGotResponse chan struct{}, response chan Packet) {
 	select {
 	case p := <-response:
-		log.Debugf("We got response after send: % x\n", p.Encode())
+		logrus.Debugf("We got response after send: % x\n", p.Encode())
 		if !bytes.Equal(p.Data(), []byte{0}) {
-			log.Errorf("We got RESPONSE error after send: % x\n", p.Encode())
+			logrus.Errorf("We got RESPONSE error after send: % x\n", p.Encode())
 		}
 		weGotResponse <- struct{}{}
 		return
 	case <-time.After(time.Second * 2):
-		log.Error("We got TIMOUT after send")
+		logrus.Error("We got TIMOUT after send")
 		weGotResponse <- struct{}{}
 		return
 	}
@@ -63,11 +63,11 @@ func waitForResponse(weGotResponse chan struct{}, response chan Packet) {
 
 func reciever(data []byte, recv chan Packet, resp chan Packet) {
 	p, err := Decode(data)
-	log.Debugf("%#v\n", p)
-	log.Debugf("%#v\n", p.Header())
-	log.Debugf("Data: %#v\n", p.Data())
+	logrus.Debugf("%#v\n", p)
+	logrus.Debugf("%#v\n", p.Header())
+	logrus.Debugf("Data: %#v\n", p.Data())
 	if err != nil {
-		log.Error("Decode failed :", err)
+		logrus.Error("Decode failed :", err)
 		return
 	}
 	if p.PacketType() == PacketTypeResponse {
@@ -92,11 +92,11 @@ func readPackets(rd io.Reader, f func([]byte)) {
 			if err == io.EOF {
 				return
 			}
-			log.Error("ERROR reading:", err)
+			logrus.Error("ERROR reading:", err)
 			continue
 		}
 
-		log.Debugf("% x ", buf)
+		logrus.Debugf("% x ", buf)
 
 		if readLen > 0 && buf[0] == 0x55 && state == 0 {
 			rawPacket = []byte{}

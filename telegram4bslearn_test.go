@@ -24,7 +24,7 @@ func TestTelegram4bsLearnFunc(t *testing.T) {
 	p.SetLearnFunc(0x38)
 	fmt.Printf("%b\n", p.TelegramData()[0])
 	if p.LearnFunc() != 0x38 {
-		t.Errorf("expected: %t got %t", 0x38, p.LearnFunc())
+		t.Errorf("expected: %d got %v", 0x38, p.LearnFunc())
 	}
 }
 
@@ -36,6 +36,6 @@ func TestTelegram4bsLearnType(t *testing.T) {
 	p.SetLearn(false)
 	p.SetLearnType(0x08)
 	if p.LearnType() != 0x08 {
-		t.Errorf("LearnType expected: %t got %t", 0x08, p.LearnType())
+		t.Errorf("LearnType expected: %d got %v", 0x08, p.LearnType())
 	}
 }

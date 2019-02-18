@@ -35,7 +35,7 @@ func TestSetGetPacketType(t *testing.T) {
 	p := NewPacket()
 	p.SetPacketType(PacketTypeRadioErp1)
 	if p.PacketType() != PacketTypeRadioErp1 {
-		t.Errorf("wrong PacketType: %s", p.PacketType())
+		t.Errorf("wrong PacketType: %v", p.PacketType())
 	}
 }
 func TestDecodeBrokenPackage(t *testing.T) {
